@@ -15,7 +15,9 @@ export default function DashboardLayout({ children }) {
             {/* Sidebar */}
             <div className={`bg-white w-64 min-h-screen flex flex-col ${sidebarOpen ? 'block' : 'hidden'} md:block`}>
                 <div className="p-4">
-                    <Image src="/placeholder.svg" alt="Glow Logo" width={120} height={40} />
+                    <Link className="flex items-center gap-2 text-xl font-bold text-purple-700 ml-[12px]" href="#">
+                        <span>Glowlytics</span>
+                    </Link>
                 </div>
                 <nav className="flex-1 px-2 py-4 space-y-2">
                     <Link href="/dashboard" passHref>
