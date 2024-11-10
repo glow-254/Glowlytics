@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: glowlytics_db
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Set up Prisma
+      run: npx prisma generate
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h 127.0.0.1 -p 5432; do
+          echo "Waiting for PostgreSQL to start..."
+          sleep 1
+        done
+
+    - name: Run Prisma migrations
+      env:
+        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/glowlytics_db"
+      run: npx prisma migrate deploy
+
+    - name: Run tests
+      run: npm test
