@@ -50,7 +50,7 @@ export function Page() {
               </div>
               <div className="space-x-4">
                 <Button asChild size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">
-                  <Link href="#signup">Try Now</Link>
+                  <Link href="/auth">Try Now</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="text-purple-600 border-purple-300 hover:bg-purple-100">
                   <Link href="#features">Learn More</Link>

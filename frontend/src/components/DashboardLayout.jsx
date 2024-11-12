@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 
+
 export default function DashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -36,6 +37,12 @@ export default function DashboardLayout({ children }) {
                         <Button variant="ghost" className="w-full justify-start text-blue">
                             <Users className="mr-2 h-4 w-4" />
                             Consumers
+                        </Button>
+                    </Link>
+                    <Link href="/dashboard/productDevelopment" passHref>
+                        <Button variant="ghost" className="w-full justify-start text-blue">
+                            <Beaker className="mr-2 h-4 w-4" />
+                            Product Development
                         </Button>
                     </Link>
                     <Link href="/dashboard/feedback" passHref>
@@ -98,9 +105,13 @@ export default function DashboardLayout({ children }) {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuItem>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        <span>Account settings</span>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/Settings" passHref>
+                                            <a className="flex items-center">
+                                                <Settings className="mr-2 h-4 w-4" />
+                                                <span>Account settings</span>
+                                            </a>
+                                        </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem>

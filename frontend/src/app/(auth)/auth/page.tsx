@@ -10,8 +10,14 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+// A helper function to save JWT token to localStorage
+const saveToken = (token) => {
+  localStorage.setItem('jwtToken', token);
+}
+
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') || 'login'
@@ -19,6 +25,7 @@ export default function AuthPage() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>, action: string) {
     event.preventDefault()
     setIsLoading(true)
+    setError('')  // Clear any previous errors
 
     const formData = new FormData(event.currentTarget)
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/${action}`, {
@@ -30,15 +37,19 @@ export default function AuthPage() {
     })
 
     if (response.ok) {
+      const data = await response.json()
+
       if (action === 'login') {
+        saveToken(data.token)  // Save the JWT to localStorage
         router.push('/dashboard')
       } else if (action === 'register') {
         router.push('/auth?tab=login&registered=true')
       } else if (action === 'forgot-password') {
-        // Show success message
+        // Handle success for forgot-password
       }
     } else {
-      // Handle errors (e.g., show error message)
+      const errorMsg = await response.json()
+      setError(errorMsg.message || 'An error occurred. Please try again.')
     }
     setIsLoading(false)
   }
@@ -73,6 +84,11 @@ export default function AuthPage() {
                   </AlertDescription>
                 </Alert>
               )}
+              {error && (
+                <Alert className="mb-4 mx-6" variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <form onSubmit={(e) => onSubmit(e, 'login')}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -96,6 +112,11 @@ export default function AuthPage() {
                 <CardTitle>Create an account</CardTitle>
                 <CardDescription>Enter your details to create your account</CardDescription>
               </CardHeader>
+              {error && (
+                <Alert className="mb-4 mx-6" variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <form onSubmit={(e) => onSubmit(e, 'register')}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -123,6 +144,11 @@ export default function AuthPage() {
                 <CardTitle>Forgot your password?</CardTitle>
                 <CardDescription>Enter your email to reset your password</CardDescription>
               </CardHeader>
+              {error && (
+                <Alert className="mb-4 mx-6" variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <form onSubmit={(e) => onSubmit(e, 'forgot-password')}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
