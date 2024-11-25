@@ -1,176 +1,144 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Beaker } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-// A helper function to save JWT token to localStorage
-const saveToken = (token) => {
-  localStorage.setItem('jwtToken', token);
-}
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { EyeIcon, EyeOffIcon } from 'lucide-react'
 
 export default function AuthPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const defaultTab = searchParams.get('tab') || 'login'
+  const [isLogin, setIsLogin] = useState(true)
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>, action: string) {
+  // Handle form submission
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setIsLoading(true)
-    setError('')  // Clear any previous errors
+    setLoading(true)
+    setError(null)
 
-    const formData = new FormData(event.currentTarget)
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/${action}`, {
-      method: 'POST',
-      body: JSON.stringify(Object.fromEntries(formData)),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const formData = { email, password, name }
 
-    if (response.ok) {
+    try {
+      const response = await fetch(isLogin ? 'http://localhost:5000/auth/login' : 'http://localhost:5000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
       const data = await response.json()
 
-      if (action === 'login') {
-        saveToken(data.token)  // Save the JWT to localStorage
-        router.push('/dashboard')
-      } else if (action === 'register') {
-        router.push('/auth?tab=login&registered=true')
-      } else if (action === 'forgot-password') {
-        // Handle success for forgot-password
+      if (!response.ok) {
+        setError(data.message || 'An error occurred')
+        setLoading(false)
+        return
       }
-    } else {
-      const errorMsg = await response.json()
-      setError(errorMsg.message || 'An error occurred. Please try again.')
+
+      // Handle successful response
+      console.log('Form submitted successfully:', data)
+      setLoading(false)
+      // Redirect or show success message here, e.g., window.location.href = '/dashboard'
+
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again later.')
+      setLoading(false)
     }
-    setIsLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-pink-50">
-      <header className="w-full border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-4">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 text-xl font-bold text-purple-700">
-            <Beaker className="h-6 w-6" />
-            <span>Glowlytics</span>
-          </div>
-        </div>
-      </header>
-      <main className="flex-grow flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md">
-          <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-              <TabsTrigger value="forgot-password">Reset Password</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-              <CardHeader>
-                <CardTitle>Log in to your account</CardTitle>
-                <CardDescription>Enter your email and password to log in</CardDescription>
-              </CardHeader>
-              {searchParams.get('registered') && (
-                <Alert className="mb-4 mx-6">
-                  <AlertDescription>
-                    Account created successfully. Please log in.
-                  </AlertDescription>
-                </Alert>
-              )}
-              {error && (
-                <Alert className="mb-4 mx-6" variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <form onSubmit={(e) => onSubmit(e, 'login')}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" name="email" type="email" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" name="password" type="password" required />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Logging in...' : 'Log in'}
-                  </Button>
-                </CardFooter>
-              </form>
-            </TabsContent>
-            <TabsContent value="register">
-              <CardHeader>
-                <CardTitle>Create an account</CardTitle>
-                <CardDescription>Enter your details to create your account</CardDescription>
-              </CardHeader>
-              {error && (
-                <Alert className="mb-4 mx-6" variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <form onSubmit={(e) => onSubmit(e, 'register')}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
-                    <Input id="register-email" name="email" type="email" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Password</Label>
-                    <Input id="register-password" name="password" type="password" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <Input id="companyName" name="companyName" required />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Creating account...' : 'Create account'}
-                  </Button>
-                </CardFooter>
-              </form>
-            </TabsContent>
-            <TabsContent value="forgot-password">
-              <CardHeader>
-                <CardTitle>Forgot your password?</CardTitle>
-                <CardDescription>Enter your email to reset your password</CardDescription>
-              </CardHeader>
-              {error && (
-                <Alert className="mb-4 mx-6" variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <form onSubmit={(e) => onSubmit(e, 'forgot-password')}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email</Label>
-                    <Input id="reset-email" name="email" type="email" required />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Sending reset link...' : 'Send reset link'}
-                  </Button>
-                </CardFooter>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </Card>
-      </main>
-      <footer className="w-full border-t bg-purple-50 py-4">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          © {new Date().getFullYear()} Glowlytics. All rights reserved.
-        </div>
-      </footer>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>{isLogin ? 'Login' : 'Create Account'}</CardTitle>
+          <CardDescription>
+            {isLogin ? 'Enter your credentials to access your account' : 'Sign up for a new account'}
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+
+          {error && (
+            <div className="text-sm text-red-600 text-center">
+              <p>{error}</p>
+            </div>
+          )}
+
+          <CardFooter className="flex flex-col space-y-4">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Submitting...' : isLogin ? 'Login' : 'Create Account'}
+            </Button>
+            <p className="text-sm text-center text-gray-600">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              <Button
+                type="button"
+                variant="link"
+                className="pl-1.5"
+                onClick={() => setIsLogin(!isLogin)}
+              >
+                {isLogin ? 'Sign up' : 'Login'}
+              </Button>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   )
 }

@@ -1,60 +1,66 @@
 const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client');
-const jwtService = require('../services/jwtService');
-const passwordUtils = require('../utils/passwordUtils');
+const prisma = require('../config/db');
 
-const prisma = new PrismaClient();
+// Register User
+exports.register = async (req, res) => {
+  const { email, password, name } = req.body;
 
-// Register a new user
-async function register(req, res) {
-    const { email, password, companyName } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
 
-    try {
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
-        if (existingUser) {
-            return res.status(400).json({ error: 'User already exists' });
-        }
-
-        const hashedPassword = await passwordUtils.hashPassword(password);
-
-        const newUser = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                companyName,
-            },
-        });
-
-        res.status(201).json({ message: 'User created successfully', user: newUser });
-    } catch (error) {
-        res.status(500).json({ error: 'Error creating user' });
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+      },
+    });
+    res.status(201).json({ message: 'User registered successfully', user: newUser });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ message: 'Email already in use' });
     }
-}
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
-// Login user
-async function login(req, res) {
-    const { email, password } = req.body;
+// Login User
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
 
-    try {
-        const user = await prisma.user.findUnique({
-            where: { email },
-        });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
 
-        if (!user || !(await passwordUtils.comparePassword(password, user.password))) {
-            return res.status(400).json({ error: 'Invalid email or password' });
-        }
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
 
-        const token = jwtService.generateToken(user);
-
-        res.status(200).json({ message: 'Login successful', token });
-    } catch (error) {
-        res.status(500).json({ error: 'Error logging in' });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
-}
 
-module.exports = {
-    register,
-    login,
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    req.session.user = { id: user.id, email: user.email };
+    res.status(200).json({ message: 'Login successful', user: req.session.user });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Logout User
+exports.logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Failed to log out' });
+    }
+    res.clearCookie('connect.sid');
+    res.status(200).json({ message: 'Logged out successfully' });
+  });
 };
