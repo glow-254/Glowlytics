@@ -1,6 +1,9 @@
+// pages/auth.tsx
+
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation' // Import router for redirection
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,49 +11,58 @@ import { Label } from "@/components/ui/label"
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 
 export default function AuthPage() {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setLoading(true)
-    setError(null)
+    event.preventDefault();
+    setLoading(true);
 
-    const formData = { email, password, name }
-
-    try {
-      const response = await fetch(isLogin ? 'http://localhost:5000/auth/login' : 'http://localhost:5000/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.message || 'An error occurred')
-        setLoading(false)
-        return
-      }
-
-      // Handle successful response
-      console.log('Form submitted successfully:', data)
-      setLoading(false)
-      // Redirect or show success message here, e.g., window.location.href = '/dashboard'
-
-    } catch (error) {
-      setError('An unexpected error occurred. Please try again later.')
-      setLoading(false)
+    // Ensure required fields are not empty
+    if (!email || !password || (!isLogin && !name)) {
+      alert('All fields are required');
+      setLoading(false);
+      return;
     }
-  }
+
+    // Prepare the form data
+    const formData = { email, password, ...(isLogin ? {} : { name }) };
+    console.log('Form Data:', formData); // Check if name is included
+    try {
+      const response = await fetch(
+        isLogin ? 'http://localhost:5000/auth/login' : 'http://localhost:5000/auth/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('Authentication successful:', data);
+        router.push('/dashboard');
+      } else {
+        console.error('Authentication failed:', data.error);
+        alert(data.error || 'An error occurred during authentication.');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('Unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
@@ -114,12 +126,6 @@ export default function AuthPage() {
               </div>
             </div>
           </CardContent>
-
-          {error && (
-            <div className="text-sm text-red-600 text-center">
-              <p>{error}</p>
-            </div>
-          )}
 
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>

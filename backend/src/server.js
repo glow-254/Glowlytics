@@ -1,25 +1,20 @@
-require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const authRoutes = require('./routes/authRoutes'); // Ensure this file exists and is set up
-const User = require('./models/User'); // Ensure you have a User model for database interaction
+// backend/src/server.js
+import dotenv from 'dotenv';
+dotenv.config(); // Load environment variables
+console.log('DATABASE_URL:', process.env.DATABASE_URL);
+import express from 'express';
+import session from 'express-session';
+import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
+const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/glowlytics', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Failed to connect to MongoDB:', err));
-
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000', // Update this with your frontend's URL in production
+  origin: 'http://localhost:3000', // Frontend URL
   credentials: true,
 }));
 app.use(express.json());
@@ -27,42 +22,45 @@ app.use(express.json());
 // Session Middleware
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'mySuperSecretKey123!', // Use environment variable in production
+    secret: process.env.SESSION_SECRET || 'mySuperSecretKey123!',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // Secure cookies in production
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24, // 1 day
     },
   })
 );
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Welcome to the Glowlytics server!');
-});
-
-app.use('/auth', authRoutes); // Ensure authRoutes contains necessary routes
-
 // Registration Route
 app.post('/auth/register', async (req, res) => {
+  console.log(req.body);  // Log the request body for debugging
   const { name, email, password } = req.body;
 
+  // Check if all required fields are provided
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
     }
 
-    const newUser = new User({ name, email, password });
-    await newUser.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        isVerified: false,
+        role: 'USER',
+      },
+    });
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -78,13 +76,13 @@ app.post('/auth/login', async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) { // Assuming you have a method `comparePassword`
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    req.session.userId = user._id; // Store user ID in session
-    res.status(200).json({ message: 'Login successful' });
+    req.session.userId = user.id; // Store user ID in session
+    res.status(200).json({ message: 'Login successful', user });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal Server Error' });

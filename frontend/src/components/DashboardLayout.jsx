@@ -39,24 +39,24 @@ export default function DashboardLayout({ children }) {
                             Consumers
                         </Button>
                     </Link>
-                    <Link href="/dashboard/productDevelopment" passHref>
+                    {/* <Link href="/dashboard/productDevelopment" passHref>
                         <Button variant="ghost" className="w-full justify-start text-blue">
                             <Beaker className="mr-2 h-4 w-4" />
                             Product Development
                         </Button>
-                    </Link>
+                    </Link> */}
                     <Link href="/dashboard/feedback" passHref>
                         <Button variant="ghost" className="w-full justify-start text-blue">
                             <Bell className="mr-2 h-4 w-4" />
                             Feedback
                         </Button>
                     </Link>
-                    <Link href="/dashboard/marketTrends" passHref>
+                    {/*<Link href="/dashboard/marketTrends" passHref>
                         <Button variant="ghost" className="w-full justify-start text-blue">
                             <TrendingUp className="mr-2 h-4 w-4" />
                             Market Trends
                         </Button>
-                    </Link>
+                    </Link>*/}
                 </nav>
             </div>
 
