@@ -1,0 +1,6 @@
+{
+    "build": {
+        "src": "backend/src",
+        "use": "@vercel/next"
+    }
+}
