@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, User, Lock, Globe, Palette, CreditCard, HelpCircle, LogOut } from 'lucide-react'
+import { Bell, User, Lock, Globe, Palette, CreditCard, HelpCircle /*LogOut*/ } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -122,7 +122,7 @@ export function BlockPage() {
           <Card>
             <CardHeader>
               <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>Choose how you'd like to be notified.</CardDescription>
+              <CardDescription>Choose how would you like to be notified</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
