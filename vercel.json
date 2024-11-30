@@ -1,6 +1,4 @@
 {
-    "build": {
-        "src": "backend/src",
-        "use": "@vercel/next"
-    }
+    "framework": "nextjs",
+    "rootDirectory": "backend/src"
 }
