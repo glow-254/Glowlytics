@@ -1,10 +1,25 @@
 {
+    "version": 2,
     "builds": [
         {
-            "src": "frontend/package.json",
+            "src": "frontend/src/pages/**/*",
             "use": "@vercel/next"
         }
     ],
-    "framework": "nextjs",
-    "outputDirectory": "frontend/.next"
+    "rewrites": [
+        {
+            "source": "/old-page",
+            "destination": "/new-page"
+        }
+    ],
+    "redirects": [
+        {
+            "source": "/old-route",
+            "destination": "/new-route",
+            "statusCode": 301
+        }
+    ],
+    "error": {
+        "404": "frontend/src/pages/404.js"
+    }
 }
