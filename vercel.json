@@ -1,22 +1,10 @@
 {
-    "version": 2,
     "builds": [
         {
-            "src": "frontend/src/pages/**/*",
+            "src": "frontend/package.json",
             "use": "@vercel/next"
         }
     ],
-    "rewrites": [
-        {
-            "source": "/old-page",
-            "destination": "/new-page"
-        }
-    ],
-    "redirects": [
-        {
-            "source": "/old-route",
-            "destination": "/new-route",
-            "statusCode": 301
-        }
-    ]
+    "framework": "nextjs",
+    "outputDirectory": "frontend/.next"
 }
