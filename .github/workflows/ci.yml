@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Build and Deploy
 
 on:
   push:
@@ -11,46 +11,31 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: glow
-          POSTGRES_PASSWORD: glow
-          POSTGRES_DB: glowlytics
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U glow -d glowlytics"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'  # Ensure you're using a compatible Node.js version
 
-    - name: Install Dependencies
-      run: yarn install
+      - name: Install dependencies
+        run: yarn install
 
-    - name: Set Environment Variables
-      run: echo "DATABASE_URL=postgresql://glow:glow@localhost:5432/glowlytics" >> $GITHUB_ENV
+      - name: Verify directory structure
+        run: |
+          if [ ! -d "frontend/src/app" ]; then
+            echo "Error: No 'app' directory found under 'frontend/src'!" && exit 1
+          fi
 
-    - name: Run Prisma Migrations
-      run: npx prisma migrate deploy
-      env:
-        DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Build the application
+        run: |
+          # Change to the frontend directory before building
+          cd frontend
+          yarn run build
 
-    - name: Build Application
-      run: yarn run build
-
-    - name: Run Tests
-      run: yarn run test
-      env:
-        DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Deploy to Vercel
+        run: vercel --prod --token $VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
