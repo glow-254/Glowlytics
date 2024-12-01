@@ -18,8 +18,5 @@
             "destination": "/new-route",
             "statusCode": 301
         }
-    ],
-    "error": {
-        "404": "frontend/src/pages/404.js"
-    }
+    ]
 }
