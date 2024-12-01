@@ -18,12 +18,12 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'  # Use Node.js version 18.x to match Next.js requirements
+          node-version: '18'
 
       - name: Install dependencies
         run: |
           cd frontend
-          yarn install  # Make sure all dependencies, including Next.js, are installed
+          yarn install  # Install all dependencies, including Next.js
 
       - name: Verify directory structure
         run: |
@@ -33,11 +33,12 @@ jobs:
 
       - name: Build the application
         run: |
-          # Change to the frontend directory before building
           cd frontend
-          yarn run build  # Ensure next is installed and build can run
+          yarn run build  # Run the build process
 
       - name: Deploy to Vercel
-        run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # Ensure Vercel CLI is available and deploy with the provided token
+          vercel --prod --token $VERCEL_TOKEN
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}  # Ensure the token is passed as an environment variable
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}  # Ensure the Vercel token is passed
