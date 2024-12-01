@@ -35,10 +35,3 @@ jobs:
         run: |
           cd frontend
           yarn run build  # Run the build process
-
-      - name: Deploy to Vercel
-        run: |
-          # Ensure Vercel CLI is available and deploy with the provided token
-          vercel --prod --token $VERCEL_TOKEN
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}  # Ensure the Vercel token is passed
