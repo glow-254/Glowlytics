@@ -23,9 +23,10 @@ export default function FeedbackCollectionPage() {
     const [formFields, setFormFields] = useState<FormField[]>([
         { id: 1, type: 'text', label: 'Name', placeholder: 'Enter your name' },
         { id: 2, type: 'email', label: 'Email', placeholder: 'Enter your email' },
-        { id: 3, type: 'select', label: 'Product', options: ['Glow Serum', 'Hydra Cream', 'Clarity Toner'] },
+        { id: 3, type: 'select', label: 'Product', placeholder: 'Select a product', options: ['Glow Serum', 'Hydra Cream', 'Clarity Toner'] },
         { id: 4, type: 'textarea', label: 'Feedback', placeholder: 'Enter your feedback here' },
     ]);
+
 
     const addField = (type: FieldType) => {
         const newField: FormField = {
