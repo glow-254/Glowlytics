@@ -6,6 +6,5 @@
         }
     ],
     "framework": "nextjs",
-    "outputDirectory": "frontend/.next",
-    "rootDirectory": "frontend"
+    "outputDirectory": "frontend/.next"
 }
