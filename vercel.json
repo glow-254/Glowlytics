@@ -7,7 +7,6 @@
     ],
     "framework": "nextjs",
     "outputDirectory": "frontend/.next",
-    "rootDirectory": "frontend",
     "rewrites": [
         {
             "source": "/(.*)",
