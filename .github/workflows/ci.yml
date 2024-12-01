@@ -21,7 +21,9 @@ jobs:
           node-version: '18'  # Use Node.js version 18.x to match Next.js requirements
 
       - name: Install dependencies
-        run: yarn install
+        run: |
+          cd frontend
+          yarn install  # Make sure all dependencies, including Next.js, are installed
 
       - name: Verify directory structure
         run: |
@@ -33,7 +35,7 @@ jobs:
         run: |
           # Change to the frontend directory before building
           cd frontend
-          yarn run build
+          yarn run build  # Ensure next is installed and build can run
 
       - name: Deploy to Vercel
         run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
